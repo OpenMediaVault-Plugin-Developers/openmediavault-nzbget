@@ -1,0 +1,54 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides:          nzbget
+# Required-Start:    $local_fs $network $remote_fs
+# Required-Stop:     $local_fs $network $remote_fs
+# Should-Start:      NetworkManager
+# Should-Stop:       NetworkManager
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: NZBGet
+### END INIT INFO
+
+############### EDIT ME ##################
+# Location of the nzbget executable
+NZBGET_BINARY="/opt/nzbget/nzbget"
+
+# Additional options, e. g. config file location:
+# NZBGET_OPTS="-c /mnt/hdd/tools/nzbget/conf/nzbget.conf"
+NZBGET_OPTS="-c /usr/share/nzbget/nzbget.conf"
+############### EDIT ME ##################
+
+case "$1" in
+    start)
+        "$NZBGET_BINARY" $NZBGET_OPTS -D
+        ;;
+    stop)
+        "$NZBGET_BINARY" $NZBGET_OPTS -Q
+        ;;
+    restart)
+        "$NZBGET_BINARY" $NZBGET_OPTS -Q
+        sleep 10 # since stop is backgrounded
+        "$NZBGET_BINARY" $NZBGET_OPTS -D
+        ;;
+    status)
+        "$NZBGET_BINARY" $NZBGET_OPTS -L S
+        ;;
+    pstatus)
+        retval=$(pgrep -l -f nzbget  > /dev/null ; echo $?)
+        if [ "$retval" = "0" ] ; then
+            echo "        ------- nzbget *is* running -------"
+            ps -Ho user,pid,cmd:32,pcpu -C nzbget
+            exit 0
+        else
+            echo "        ------- nzbget is *not* running -------"
+            exit 0
+        fi
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status|pstatus|usage}"
+        exit 1
+esac
+
+exit 0

@@ -1,0 +1,68 @@
+#!/bin/sh
+
+set -e
+
+. /etc/default/openmediavault
+. /usr/share/openmediavault/scripts/helper-functions
+
+case "$1" in
+    configure)
+        if ! getent passwd nzbget >/dev/null 2>&1; then
+            echo "Adding nzbget user..."
+            useradd --create-home --groups users --no-user-group --shell /usr/sbin/nologin nzbget
+            insserv -d nzbget
+            mkdir -p /home/nzbget/downloads
+        else
+            echo "nzbget user already exists."
+        fi
+
+        if [ ! -f "/opt/nzbget/nzbget" ]; then
+            echo "installing nzbget binary file"
+            cd /opt/nzbget
+            arch=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
+            if [ $arch -eq 32 ]; then
+                echo "Installing binary file for a 32 bit system"
+                tar -zxf nzbget.tar.gz nzbget_i386
+            elif [ $arch -eq 64 ]; then
+                echo "Installing binary file for a 64 bit system"
+                tar -zxf nzbget.tar.gz nzbget_amd64
+            else
+                echo "Installing binary file for a arm type system"
+                tar -zxf nzbget.tar.gz nzbget_arm
+            fi
+            mv nzbget_* nzbget
+        fi
+
+        if [ -f "/opt/nzbget/nzbget.tar.gz" ]; then
+            rm -Rf nzbget.tar.gz
+        fi
+
+        if ! omv_config_exists "/config/services/nzbget"; then
+            echo "Initial configuration."
+            object="<enable>0</enable>"
+            object="${object}<showtab>0</showtab>"
+            omv_config_add_element "/config/services" "nzbget" "${object}" true
+        fi
+
+        chown -R nzbget:users /opt/nzbget /usr/share/nzbget /home/nzbget/downloads
+        chown -R nzbget:users /etc/init.d/nzbget
+        chmod -R 775 /opt/nzbget /usr/share/nzbget /home/nzbget/downloads
+
+        omv_install_fixperms
+
+        # Activate package triggers. These triggers are only set during the
+        # package installation.
+        dpkg-trigger update-fixperms
+        dpkg-trigger update-locale
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument" >&2
+        exit 1
+    ;;
+esac
+
+exit 0

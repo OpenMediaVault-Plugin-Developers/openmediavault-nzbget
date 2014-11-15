@@ -1,0 +1,24 @@
+Source: openmediavault-nzbget
+Section: misc
+Priority: optional
+Maintainer: OpenMediaVault Plugin Developers <plugins@omv-extras.org>
+Build-Depends: debhelper (>= 9 )
+Standards-Version: 3.9.3
+
+Package: openmediavault-nzbget
+Architecture: all
+Depends: ${misc:Depends}, openmediavault (>= 1.0), libjs-jquery (>= 1.7.2), openssl,
+ libc6 (>= 2.13), libgcc1 (>= 1:4.1.1), libgnutls-dev, libncurses5 (>= 5.5-5~), unrar, p7zip-full,
+ par2, libsigc++-2.0-0c2a (>= 2.2.0), libstdc++6, libtinfo5, libxml2 (>= 2.7.4), zlib1g (>= 1:1.2.0)
+Recommends: python
+Homepage: http://nzbget.sourceforge.net
+Description: command-line based binary newsgrabber for nzb files
+ NZBGet is a command-line based binary newsgrabber that uses nzb files as
+ described in http://docs.newzbin.com/index.php/Newzbin:NZB_Specs, they are
+ commonly used to describe binaries posted in the Usenet that span multiple
+ posts.
+ .
+ nzbget can be run as a standalone tool, in client/server mode or as a daemon,
+ which makes it ideal to run on NAS-devices or routers. nzbget supports
+ automatic par-check/-repair can use scripts to postprocess downloaded files,
+ for example to stream them to an audio/video player.

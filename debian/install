@@ -1,0 +1,4 @@
+usr/share/openmediavault/*  usr/share/openmediavault
+usr/share/nzbget/*          usr/share/nzbget
+var/www/openmediavault/*    var/www/openmediavault
+opt/nzbget/nzbget.tar.gz    opt/nzbget

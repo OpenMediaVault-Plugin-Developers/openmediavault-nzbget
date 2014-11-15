@@ -1,0 +1,4 @@
+openmediavault-nzbget
+======================
+
+nzbget plugin
