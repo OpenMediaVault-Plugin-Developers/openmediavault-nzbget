@@ -6,28 +6,35 @@ set -e
 . /usr/share/openmediavault/scripts/helper-functions
 
 case "$1" in
-        purge)
-                pkill nzbget & >/dev/null
+    purge)
+        pkill nzbget & >/dev/null
 
-                if [ -d "/opt/nzbget" ]; then
-                    echo "making sure nzbget is stopped"
-                    /opt/nzbget/nzbget -c /usr/share/nzbget/nzbget.conf -Q & >/dev/null
-                    sleep 2
-                    rm -Rf /opt/nzbget & >/dev/null
-                fi
+        if [ -d "/opt/nzbget" ]; then
+            echo "making sure nzbget is stopped"
+            /opt/nzbget/nzbget -c /usr/share/nzbget/nzbget.conf -Q & >/dev/null
+            sleep 2
+            rm -Rf /opt/nzbget & >/dev/null
+        fi
 
-                if [ -d "/usr/share/nzbget" ]; then
-                    rm -Rf /usr/share/nzbget
-                fi
+        if [ -d "/usr/share/nzbget" ]; then
+            rm -Rf /usr/share/nzbget
+        fi
 
+        omv_config_delete "//services/nzbget"
 
-                omv_config_delete "//services/nzbget"
-                userdel -r nzbget
+        if getent passwd nzbget >/dev/null 2>&1; then
+            userdel -rf nzbget
+        fi
 
-                if [ ! -d /opt ]; then
-                    mkdir /opt
-                    chmod 775 /opt
-                fi
+        if [ ! -d /opt ]; then
+            mkdir /opt
+            chmod 775 /opt
+        fi
+
+        if [ ! -d /var/opt ]; then
+            mkdir /var/opt
+            chmod 775 /opt
+        fi
         ;;
 
         remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)

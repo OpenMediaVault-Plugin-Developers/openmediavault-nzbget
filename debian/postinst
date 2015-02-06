@@ -5,13 +5,21 @@ set -e
 . /etc/default/openmediavault
 . /usr/share/openmediavault/scripts/helper-functions
 
+OMV_NZBGET_USER="nzbget"
+OMV_NZBGET_GROUP="users"
+OMV_NZBGET_VERSION="14.0"
+
 case "$1" in
     configure)
         if ! getent passwd nzbget >/dev/null 2>&1; then
             echo "Adding nzbget user..."
-            useradd --create-home --groups users --no-user-group --shell /usr/sbin/nologin nzbget
+            adduser --quiet \
+                    --system \
+                    --ingroup $OMV_NZBGET_GROUP \
+                    --no-create-home \
+                    --disabled-password \
+                    $OMV_NZBGET_USER
             insserv -d nzbget
-            mkdir -p /home/nzbget/downloads
         else
             echo "nzbget user already exists."
         fi
@@ -21,16 +29,36 @@ case "$1" in
             cd /opt/nzbget
             arch=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
             if [ $arch -eq 32 ]; then
-                echo "Installing binary file for a 32 bit system"
+                echo "Installing binary file for a 32 bit systems"
                 tar -zxf nzbget.tar.gz nzbget_i386
             elif [ $arch -eq 64 ]; then
-                echo "Installing binary file for a 64 bit system"
+                echo "Installing binary file for a 64 bit systems"
                 tar -zxf nzbget.tar.gz nzbget_amd64
             else
-                echo "Installing binary file for a arm type system"
+                echo "Installing binary file for a arm type systems"
                 tar -zxf nzbget.tar.gz nzbget_arm
             fi
             mv nzbget_* nzbget
+        else
+            # Get current version.
+            OMV_INSTALLED_VERSION=$(/opt/nzbget/nzbget -v | cut -d ' ' -f 3)
+            if [ "$OMV_NZBGET_VERSION" \> "$OMV_INSTALLED_VERSION" ]; then
+                echo "Installing Updated Version."
+                cd /opt/nzbget
+                arch=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
+                if [ $arch -eq 32 ]; then
+                    echo "Installing binary file for a 32 bit systems"
+                    tar -zxf nzbget.tar.gz nzbget_i386
+                elif [ $arch -eq 64 ]; then
+                    echo "Installing binary file for a 64 bit systems"
+                    tar -zxf nzbget.tar.gz nzbget_amd64
+                else
+                    echo "Installing binary file for a arm type systems"
+                    tar -zxf nzbget.tar.gz nzbget_arm
+                fi
+                rm nzbget
+                mv nzbget_* nzbget
+            fi
         fi
 
         if [ -f "/opt/nzbget/nzbget.tar.gz" ]; then

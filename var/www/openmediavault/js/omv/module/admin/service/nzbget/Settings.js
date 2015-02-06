@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2013 OpenMediaVault Plugin Developers
+ * Copyright (C) 2013-2015 OpenMediaVault Plugin Developers
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,36 +23,35 @@
 
 Ext.define("OMV.module.admin.service.nzbget.Settings", {
     extend : "OMV.workspace.form.Panel",
-    uses   : [
+    requires   : [
         "OMV.data.Model",
         "OMV.data.Store"
     ],
 
-    initComponent : function () {
-        var me = this;
+    rpcService   : "NZBGet",
+    rpcGetMethod : "getSettings",
+    rpcSetMethod : "setSettings",
 
-        me.on('load', function () {
-            var checked = me.findField('enable').checked;
-            var showtab = me.findField('showtab').checked;
-            var parent = me.up('tabpanel');
+    initComponent: function() {
+        this.on("load", function() {
+            var checked = this.findField("enable").checked;
+            var showtab = this.findField("showtab").checked;
+            var parent = this.up("tabpanel");
 
-            if (!parent)
+            if (!parent) {
                 return;
+            }
 
-            var managementPanel = parent.down('panel[title=' + _("Web Interface") + ']');
+            var managementPanel = parent.down("panel[title=" + _("Web Interface") + "]");
 
             if (managementPanel) {
                 checked ? managementPanel.enable() : managementPanel.disable();
                 showtab ? managementPanel.tab.show() : managementPanel.tab.hide();
             }
-        });
+        }, this);
 
-        me.callParent(arguments);
+        this.callParent(arguments);
     },
-
-    rpcService   : "NZBGet",
-    rpcGetMethod : "getSettings",
-    rpcSetMethod : "setSettings",
 
     plugins      : [{
         ptype        : "linkedfields",
@@ -61,8 +60,37 @@ Ext.define("OMV.module.admin.service.nzbget.Settings", {
                 "port",
             ],
             properties : "!show"
+        },{
+            name       : [
+                "showbutton",
+            ],
+            conditions : [
+                { name  : "enable", value : false }
+            ],
+            properties : "!show"
         }]
     }],
+
+    getButtonItems: function() {
+        var items = this.callParent(arguments);
+
+        items.push({
+            id: this.getId() + "-show",
+            xtype: "button",
+            name: "showbutton",
+            text: _("Open Web Client"),
+            icon: "images/nzbget.png",
+            iconCls: Ext.baseCSSPrefix + "btn-icon-16x16",
+            scope: this,
+            handler: function() {
+                var port = this.getForm().findField("port").getValue();
+                var link = "http://" + location.hostname + ":" + port + "/";
+                window.open(link, "_blank");
+            }
+        });
+
+        return items;
+    },
 
     getFormItems : function() {
         var me = this;
@@ -94,18 +122,6 @@ Ext.define("OMV.module.admin.service.nzbget.Settings", {
                 allowDecimals: false,
                 allowBlank: false,
                 value: 6789
-            },{
-                xtype   : "button",
-                name    : "opennzbget",
-                text    : _("NZBGet Web Interface"),
-                scope   : this,
-                handler : function() {
-                    var me = this;
-                    var port = me.getForm().findField("port").getValue();
-                    var link = "http://" + location.hostname + ":" + port + "/";
-                    window.open(link, "_blank");
-                },
-                margin : "0 0 5 0"
             },{
                 border: false,
                 html: "<br />"
