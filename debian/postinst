@@ -16,12 +16,15 @@ case "$1" in
             adduser --quiet \
                     --system \
                     --ingroup $OMV_NZBGET_GROUP \
-                    --no-create-home \
                     --disabled-password \
                     $OMV_NZBGET_USER
             insserv -d nzbget
         else
             echo "nzbget user already exists."
+        fi
+
+        if [ ! -f "/home/nzbget/downloads" ]; then
+            mkdir -p /home/nzbget/downloads
         fi
 
         if [ ! -f "/opt/nzbget/nzbget" ]; then
@@ -72,7 +75,7 @@ case "$1" in
             omv_config_add_element "/config/services" "nzbget" "${object}" true
         fi
 
-        chown -R nzbget:users /opt/nzbget /usr/share/nzbget /home/nzbget/downloads
+        chown -R nzbget:users /opt/nzbget /home/nzbget/downloads /usr/share/nzbget
         chown -R nzbget:users /etc/init.d/nzbget
         chmod -R 775 /opt/nzbget /usr/share/nzbget /home/nzbget/downloads
 

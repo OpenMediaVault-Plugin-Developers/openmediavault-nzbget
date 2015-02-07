@@ -39,6 +39,6 @@ rm -Rf /usr/share/nzbget/webui
 mv /tmp/nzbget/webui /usr/share/nzbget/
 
 rm -Rf /tmp/nzbget
-sudo -u root /etc/init.d/nzbget restart >/dev/null 2>&1
+setsid /etc/init.d/nzbget restart
 echo "Update Completed, close window and refresh the page."
 exit 0

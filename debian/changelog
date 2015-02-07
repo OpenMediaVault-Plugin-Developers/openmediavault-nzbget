@@ -1,3 +1,10 @@
+openmediavault-nzbget (1.2) TESTING; urgency=low
+
+  * Option to update to 14.1
+  * Add Update configuration
+
+ -- OpenMediaVault Plugin Developers <plugins@omv-extras.org>  Sat, 07 Feb 2015 19:18:29 +0000
+
 openmediavault-nzbget (1.1) stable; urgency=low
 
   * Add custom debian/control field XB-Plugin-Section

@@ -7,16 +7,15 @@ set -e
 
 case "$1" in
     purge)
-        pkill nzbget & >/dev/null
-
-        if [ -d "/opt/nzbget" ]; then
-            echo "making sure nzbget is stopped"
-            /opt/nzbget/nzbget -c /usr/share/nzbget/nzbget.conf -Q & >/dev/null
-            sleep 2
-            rm -Rf /opt/nzbget & >/dev/null
+        if [ -d /etc/init.d/nzbget ]; then
+            /ect/init.d/nzbget stop
         fi
 
-        if [ -d "/usr/share/nzbget" ]; then
+        if [ -d /opt/nzbget ]; then
+            rm -Rf /opt/nzbget
+        fi
+
+        if [ -d /usr/share/nzbget ]; then
             rm -Rf /usr/share/nzbget
         fi
 
