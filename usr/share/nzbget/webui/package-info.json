@@ -1,0 +1,5 @@
+NZBGet.PackageInfo = {
+        "update-info-link": "http://jamied.pwp.blueyonder.co.uk/nzbget/nzbget-update-info.json",
+        "update-info-script": "/usr/share/nzbget/webui/nzbget-update-check.sh",
+        "install-script": "/usr/share/nzbget/webui/nzbget-update-install.sh"
+}

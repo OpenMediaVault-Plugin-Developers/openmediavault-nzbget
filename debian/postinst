@@ -7,7 +7,7 @@ set -e
 
 OMV_NZBGET_USER="nzbget"
 OMV_NZBGET_GROUP="users"
-OMV_NZBGET_VERSION="14.0"
+OMV_NZBGET_VERSION="14.1"
 
 case "$1" in
     configure)
@@ -62,7 +62,7 @@ case "$1" in
         fi
 
         if [ -f "/opt/nzbget/nzbget.tar.gz" ]; then
-            rm -Rf nzbget.tar.gz
+            rm -f /opt/nzbget/nzbget.tar.gz
         fi
 
         if ! omv_config_exists "/config/services/nzbget"; then
