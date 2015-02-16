@@ -23,6 +23,12 @@ case "$1" in
             echo "nzbget user already exists."
         fi
 
+        if [ ! -f "/usr/share/nzbget/nzbget.conf" ]; then
+            mv /usr/share/nzbget/nzbget.conf.new /usr/share/nzbget/nzbget.conf
+        else
+            rm -f /usr/share/nzbget/nzbget.conf.new
+        fi
+
         if [ ! -f "/home/nzbget/downloads" ]; then
             mkdir -p /home/nzbget/downloads
         fi
