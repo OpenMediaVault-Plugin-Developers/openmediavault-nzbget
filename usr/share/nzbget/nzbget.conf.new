@@ -336,7 +336,7 @@ Category1.Unpack=yes
 # Default list of post-processing scripts.
 #
 # For more information see global option <PostScript>.
-Category1.PostScript=
+Category1.PostScript=nzbToMedia/nzbToCouchPotato.py
 
 # List of aliases.
 #
@@ -351,6 +351,9 @@ Category1.PostScript=
 Category1.Aliases=
 
 Category2.Name=Series
+Category2.PostScript=nzbToMedia/nzbToSickBeard.py
+Category2.Unpack=yes
+
 Category3.Name=Music
 Category4.Name=Software
 
