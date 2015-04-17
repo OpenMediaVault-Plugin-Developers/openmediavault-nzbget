@@ -1,0 +1,3 @@
+[submodule "usr/share/nzbget/scripts/nzbToMedia"]
+	path = usr/share/nzbget/scripts/nzbToMedia
+	url = https://github.com/clinton-hall/nzbToMedia
