@@ -7,7 +7,8 @@ set -e
 
 OMV_NZBGET_USER="nzbget"
 OMV_NZBGET_GROUP="users"
-OMV_NZBGET_VERSION="14.1"
+ControlUsername=""
+ControlPassword=""
 
 case "$1" in
     configure)
@@ -23,55 +24,38 @@ case "$1" in
             echo "nzbget user already exists."
         fi
 
-        if [ ! -f "/usr/share/nzbget/nzbget.conf" ]; then
-            mv /usr/share/nzbget/nzbget.conf.new /usr/share/nzbget/nzbget.conf
-        else
-            rm -f /usr/share/nzbget/nzbget.conf.new
-        fi
-
-        if [ ! -f "/home/nzbget/downloads" ]; then
-            mkdir -p /home/nzbget/downloads
-        fi
-
-        if [ ! -f "/opt/nzbget/nzbget" ]; then
-            echo "installing nzbget binary file"
-            cd /opt/nzbget
-            arch=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
-            if [ $arch -eq 32 ]; then
-                echo "Installing binary file for a 32 bit systems"
-                tar -zxf nzbget.tar.gz nzbget_i386
-            elif [ $arch -eq 64 ]; then
-                echo "Installing binary file for a 64 bit systems"
-                tar -zxf nzbget.tar.gz nzbget_amd64
-            else
-                echo "Installing binary file for a arm type systems"
-                tar -zxf nzbget.tar.gz nzbget_arm
+        if [ ! -f "/usr/share/nzbget/nzbget" ]; then
+            echo "Installing latest NZBGet stable version"
+            cd /usr/share
+            link=`wget -q http://sourceforge.net/projects/nzbget/rss?path=/nzbget-stable -O - | \grep -m1 nzbget-.*-bin-linux.run | sed 's/\(.*\[\)\(.*\)\(]].*\)/\2/'`
+            if [ -z $link ]; then
+                echo "No stable link found, installing latest NZBGet testing version"
+                link=`wget -q http://sourceforge.net/projects/nzbget/rss?path=/nzbget-testing -O - | \grep -m1 nzbget-.*-bin-linux.run | sed 's/\(.*\[\)\(.*\)\(]].*\)/\2/'`
             fi
-            mv nzbget_* nzbget
-        else
-            # Get current version.
-            OMV_INSTALLED_VERSION=$(/opt/nzbget/nzbget -v | cut -d ' ' -f 3)
-            if [ "$OMV_NZBGET_VERSION" \> "$OMV_INSTALLED_VERSION" ]; then
-                echo "Installing Updated Version."
-                cd /opt/nzbget
-                arch=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
-                if [ $arch -eq 32 ]; then
-                    echo "Installing binary file for a 32 bit systems"
-                    tar -zxf nzbget.tar.gz nzbget_i386
-                elif [ $arch -eq 64 ]; then
-                    echo "Installing binary file for a 64 bit systems"
-                    tar -zxf nzbget.tar.gz nzbget_amd64
-                else
-                    echo "Installing binary file for a arm type systems"
-                    tar -zxf nzbget.tar.gz nzbget_arm
-                fi
-                rm nzbget
-                mv nzbget_* nzbget
+            #wget http://sourceforge.net/projects/nzbget/files/nzbget-testing/15.0-r1278/nzbget-15.0-testing-r1278-bin-linux.run -O /usr/share/nzbget-bin-linux.run
+            echo "Please wait, downloading files....."
+            wget http://sourceforge.net/projects/nzbget/files${link} -O /usr/share/nzbget-bin-linux.run > /dev/null 2>&1
+            chmod +x /usr/share/nzbget-bin-linux.run
+            ./nzbget-bin-linux.run
+            rm -Rf /usr/share/nzbget-bin-linux.run
+            # Make changes to the default conf file.
+            if [ -f "/opt/nzbget/nzbget.conf" ]; then
+                mv /opt/nzbget/nzbget.conf /usr/share/nzbget/nzbget.conf.backup
+                rm -Rf /opt/nzbget
+                ControlUsername=`sed -n '/ControlUsername=/ s///p' /usr/share/nzbget/nzbget.conf.backup | uniq`
+                ControlPassword=`sed -n '/ControlPassword=/ s///p' /usr/share/nzbget/nzbget.conf.backup | uniq`
             fi
-        fi
 
-        if [ -f "/opt/nzbget/nzbget.tar.gz" ]; then
-            rm -f /opt/nzbget/nzbget.tar.gz
+            if [ -z $ControlUsername ]; then
+                ControlUsername=openmediavault
+            fi
+
+            if [ -z $ControlPassword ]; then
+                ControlPassword=openmediavault
+            fi
+            # Anything else?
+            sed -i 's/ControlUsername.*/ControlUsername='$ControlUsername'/g' /usr/share/nzbget/nzbget.conf
+            sed -i 's/ControlPassword.*/ControlPassword='$ControlPassword'/g' /usr/share/nzbget/nzbget.conf
         fi
 
         if ! omv_config_exists "/config/services/nzbget"; then
@@ -81,9 +65,9 @@ case "$1" in
             omv_config_add_element "/config/services" "nzbget" "${object}" true
         fi
 
-        chown -R nzbget:users /opt/nzbget /home/nzbget/downloads /usr/share/nzbget
+        chown -R nzbget:users /usr/share/nzbget
         chown -R nzbget:users /etc/init.d/nzbget
-        chmod -R 775 /opt/nzbget /usr/share/nzbget /home/nzbget/downloads
+        chmod -R 775 /usr/share/nzbget
 
         omv_install_fixperms
 
@@ -103,3 +87,4 @@ case "$1" in
 esac
 
 exit 0
+

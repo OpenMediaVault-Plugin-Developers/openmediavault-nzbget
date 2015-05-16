@@ -13,10 +13,9 @@
 
 ############### EDIT ME ##################
 # Location of the nzbget executable
-NZBGET_BINARY="/opt/nzbget/nzbget"
+NZBGET_BINARY="/usr/share/nzbget/nzbget"
 
 # Additional options, e. g. config file location:
-# NZBGET_OPTS="-c /mnt/hdd/tools/nzbget/conf/nzbget.conf"
 NZBGET_OPTS="-c /usr/share/nzbget/nzbget.conf"
 ############### EDIT ME ##################
 

@@ -9,7 +9,7 @@ Standards-Version: 3.9.3
 Package: openmediavault-nzbget
 Architecture: all
 Depends: ${misc:Depends}, openmediavault (>= 1.0), libjs-jquery (>= 1.7.2), openssl,
- libc6 (>= 2.13), libgcc1 (>= 1:4.1.1), libgnutls-dev, libncurses5 (>= 5.5-5~), unrar, p7zip-full,
+ libc6 (>= 2.13), libgcc1 (>= 1:4.1.1), libgnutls-dev, libncurses5 (>= 5.5-5~),
  par2, libsigc++-2.0-0c2a (>= 2.2.0), libstdc++6, libtinfo5, libxml2 (>= 2.7.4), zlib1g (>= 1:1.2.0)
 Recommends: python
 Homepage: http://nzbget.sourceforge.net
