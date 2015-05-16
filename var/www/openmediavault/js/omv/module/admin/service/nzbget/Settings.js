@@ -23,9 +23,8 @@
 
 Ext.define("OMV.module.admin.service.nzbget.Settings", {
     extend : "OMV.workspace.form.Panel",
-    requires   : [
-        "OMV.data.Model",
-        "OMV.data.Store"
+    requires : [
+        "OMV.form.field.SharedFolderComboBox"
     ],
 
     rpcService   : "NZBGet",
@@ -122,6 +121,24 @@ Ext.define("OMV.module.admin.service.nzbget.Settings", {
                 allowDecimals: false,
                 allowBlank: false,
                 value: 6789
+            },{
+                ptype : "fieldinfo",
+                xtype      : "sharedfoldercombo",
+                name       : "download.sharedfolderref",
+                fieldLabel : _("Shared folder"),
+                plugins    : [{
+                    ptype : "fieldinfo",
+                    text  : _("Make sure the group 'users' has read/write access to the shared folder.")
+                }]
+            },{
+                xtype      : "textfield",
+                name       : "main-dir",
+                fieldLabel : _("Directory"),
+                allowBlank : true,
+                plugins    : [{
+                    ptype : "fieldinfo",
+                    text  : _("Directory to store downloads.")
+                }]
             },{
                 border: false,
                 html: "<br />"

@@ -88,9 +88,11 @@ class OMVRpcServiceNZBGet extends OMVRpcServiceAbstract
             }
         }
 
-        $object["enable"]  = boolval($object["enable"]);
-        $object["showtab"]  = boolval($object["showtab"]);
-        $object["port"]    = intval($port);
+        $object["enable"]                   = boolval($object["enable"]);
+        $object["showtab"]                  = boolval($object["showtab"]);
+        $object["port"]                     = intval($port);
+        $object["download.sharedfolderref"] = $object["download.sharedfolderref"];
+        $object["main-dir"]                 = $object["main-dir"];
 
         return $object;
     }
@@ -108,18 +110,41 @@ class OMVRpcServiceNZBGet extends OMVRpcServiceAbstract
             '{
                 "type"       : "object",
                 "properties" : {
-                    "enable"    : { "type" : "boolean" },
-                    "showtab"   : { "type" : "boolean" },
-                    "port"      : { "type" : "integer" }
+                    "enable"                      : { "type" : "boolean" },
+                    "showtab"                     : { "type" : "boolean" },
+                    "port"                        : { "type" : "integer" },
+                    "download.sharedfolderref"    : {' . $GLOBALS["OMV_JSONSCHEMA_UUID_NONE"] . '},
+                    "main-dir"                    : { "type" : "string" }
                 }
             }'
         );
 
+        if (file_exists($this->nzbgetSettingsFile)) {
+            $config = parse_ini_file(
+                $this->nzbgetSettingsFile,
+                true,
+                INI_SCANNER_RAW
+            );
+
+            // Get the absolute shared folder path.
+            $mainpath = OMVRpc::exec("ShareMgmt", "getPath", array(
+                "uuid" => $params["download.sharedfolderref"]), $context);
+
+            // Change valuse
+            if($params["main-dir"] !== '') {
+                ini_set($config['MainDir'],$mainpath . "/" . $params["main-dir"]);
+            }else{
+                ini_set($config['MainDir'],$mainpath);
+            }
+        }
+
 
         $object = array(
-            "enable"    => array_boolval($params, "enable"),
-            "showtab"   => array_boolval($params, "showtab"),
-            "port"      => $params["port"],
+            "enable"                     => array_boolval($params, "enable"),
+            "showtab"                    => array_boolval($params, "showtab"),
+            "port"                       => $params["port"],
+            "download.sharedfolderref"   => $params["download.sharedfolderref"],
+            "main-dir"                   => $params["main-dir"]
         );
 
         if (false === $xmlConfig->replace($this->getXPath(), $object)) {
