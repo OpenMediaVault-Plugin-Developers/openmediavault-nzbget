@@ -120,11 +120,15 @@ class OMVRpcServiceNZBGet extends OMVRpcServiceAbstract
         );
 
         if (file_exists($this->nzbgetSettingsFile)) {
-            $config = parse_ini_file(
-                $this->nzbgetSettingsFile,
-                true,
-                INI_SCANNER_RAW
-            );
+            //sed -i '0,s/MainDir.*/MainDir=$ControlUsername/g' /usr/share/nzbget/nzbget.conf
+
+
+
+            //$config = parse_ini_file(
+            //    $this->nzbgetSettingsFile,
+            //    true,
+            //    INI_SCANNER_RAW
+            //);
 
             // Get the absolute shared folder path.
             $mainpath = OMVRpc::exec("ShareMgmt", "getPath", array(
@@ -132,9 +136,19 @@ class OMVRpcServiceNZBGet extends OMVRpcServiceAbstract
 
             // Change valuse
             if($params["main-dir"] !== '') {
-                ini_set($config['MainDir'],$mainpath . "/" . $params["main-dir"]);
+                //ini_set($config['MainDir'],$mainpath . "/" . $params["main-dir"]);
+                $cmd="sed -i 's#^MainDir.*#MainDir=" . $mainpath . $params["main-dir"] . "#g' /usr/share/nzbget/nzbget.conf";
             }else{
-                ini_set($config['MainDir'],$mainpath);
+                //ini_set($config['MainDir'],$mainpath);
+                $cmd="sed -i 's#^MainDir.*#MainDir=" . $mainpath . "#g' /usr/share/nzbget/nzbget.conf";
+            }
+
+            if (0 !== $this->exec($cmd, $output)) {
+                throw new OMVException(
+                    OMVErrorMsg::E_EXEC_FAILED,
+                    $cmd,
+                    implode("\n", $output)
+                );
             }
         }
 

@@ -7,11 +7,13 @@ set -e
 
 case "$1" in
     purge)
-        if [ -d /etc/init.d/nzbget ]; then
+        pkill -9 -u `id -u nzbget`
+
+        if [ -f "/etc/init.d/nzbget" ]; then
             /ect/init.d/nzbget stop
         fi
 
-        if [ -d /usr/share/nzbget ]; then
+        if [ -d "/usr/share/nzbget" ]; then
             rm -Rf /usr/share/nzbget
         fi
 

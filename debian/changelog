@@ -1,11 +1,6 @@
-openmediavault-nzbget (1.4~1.gbp16ff2d) UNRELEASED; urgency=low
+openmediavault-nzbget (1.4) TESTING; urgency=low
 
-  ** SNAPSHOT build @16ff2d473ef1abed34528a42afbcb900bf3e9d51 **
-
-  [ cptjhmiller ]
-  * Start plugin 1.4 update
-
-  [ root ]
+  * Redesign of plugin
 
  -- cptjhmiller <cpt.miller@fun4gamers.co.uk>  Sat, 16 May 2015 11:59:36 +0100
 

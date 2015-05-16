@@ -56,6 +56,9 @@ case "$1" in
             # Anything else?
             sed -i 's/ControlUsername.*/ControlUsername='$ControlUsername'/g' /usr/share/nzbget/nzbget.conf
             sed -i 's/ControlPassword.*/ControlPassword='$ControlPassword'/g' /usr/share/nzbget/nzbget.conf
+            sed -i 's/DaemonUsername.*/DaemonUsername=nzbget/g' /usr/share/nzbget/nzbget.conf
+
+DaemonUsername=root
         fi
 
         if ! omv_config_exists "/config/services/nzbget"; then
