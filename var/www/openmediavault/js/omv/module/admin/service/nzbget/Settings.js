@@ -17,13 +17,16 @@
 
 // require("js/omv/WorkspaceManager.js")
 // require("js/omv/workspace/form/Panel.js")
+// require("js/omv/Rpc.js")
 // require("js/omv/data/Store.js")
 // require("js/omv/data/Model.js")
+// require("js/omv/data/proxy/Rpc.js")
 // require("js/omv/form/plugin/LinkedFields.js")
+// require("js/omv/form/field/SharedFolderComboBox.js")
 
 Ext.define("OMV.module.admin.service.nzbget.Settings", {
     extend : "OMV.workspace.form.Panel",
-    requires : [
+    uses : [
         "OMV.form.field.SharedFolderComboBox"
     ],
 
