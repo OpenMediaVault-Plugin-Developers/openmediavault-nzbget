@@ -22,5 +22,5 @@ OMV.WorkspaceManager.registerNode({
     path    : "/service",
     text    : _("NZBGet"),
     icon16  : "images/nzbget.png",
-    iconSvg : "images/nzbget.svg"
+    iconSvg : "images/nzbget.png"
 });

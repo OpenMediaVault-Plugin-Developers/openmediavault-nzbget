@@ -7,10 +7,12 @@ set -e
 
 case "$1" in
     purge)
-        pkill -9 -u `id -u nzbget`
-
         if [ -f "/etc/init.d/nzbget" ]; then
             /ect/init.d/nzbget stop
+        fi
+
+        if [ ! -z "$(pidof nzbget)" ]; then
+            pkill -9 -u `id -u nzbget` >/dev/null >&2
         fi
 
         if [ -d "/usr/share/nzbget" ]; then
@@ -20,7 +22,7 @@ case "$1" in
         omv_config_delete "//services/nzbget"
 
         if getent passwd nzbget >/dev/null 2>&1; then
-            userdel -rf nzbget
+            userdel -rf nzbget >/dev/null 2>&1
         fi
 
         ;;
