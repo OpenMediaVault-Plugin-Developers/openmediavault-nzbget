@@ -1,3 +1,9 @@
+openmediavault-nzbget (1.6) TESTING; urgency=low
+
+  * Change downloads to use github
+
+ -- cptjhmiller <cpt.miller@fun4gamers.co.uk>  Fri, 17 Jul 2015 22:19:36 +0000
+
 openmediavault-nzbget (1.5) TESTING; urgency=low
 
   * Fix uninstall of plugin

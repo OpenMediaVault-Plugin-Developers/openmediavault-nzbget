@@ -27,14 +27,14 @@ case "$1" in
         if [ ! -f "/usr/share/nzbget/nzbget" ]; then
             echo "Installing latest NZBGet stable version"
             cd /usr/share
-            link=`wget -q http://sourceforge.net/projects/nzbget/rss?path=/nzbget-stable -O - | \grep -m1 nzbget-.*-bin-linux.run | sed 's/\(.*\[\)\(.*\)\(]].*\)/\2/'`
+            link=`wget -q -O - http://nzbget.net/info/nzbget-version-linux.json | sed -n "s/^.*stable-download.*: \"\(.*\)\".*/\1/p"`
             if [ -z $link ]; then
                 echo "No stable link found, installing latest NZBGet testing version"
-                link=`wget -q http://sourceforge.net/projects/nzbget/rss?path=/nzbget-testing -O - | \grep -m1 nzbget-.*-bin-linux.run | sed 's/\(.*\[\)\(.*\)\(]].*\)/\2/'`
+                link=`wget -q -O - http://nzbget.net/info/nzbget-version-linux.json | sed -n "s/^.*testing-download.*: \"\(.*\)\".*/\1/p"`
             fi
             #wget http://sourceforge.net/projects/nzbget/files/nzbget-testing/15.0-r1278/nzbget-15.0-testing-r1278-bin-linux.run -O /usr/share/nzbget-bin-linux.run
             echo "Please wait, downloading files....."
-            wget http://sourceforge.net/projects/nzbget/files${link} -O /usr/share/nzbget-bin-linux.run > /dev/null 2>&1
+            wget ${link} -O /usr/share/nzbget-bin-linux.run > /dev/null 2>&1
             chmod +x /usr/share/nzbget-bin-linux.run
             ./nzbget-bin-linux.run
             rm -Rf /usr/share/nzbget-bin-linux.run
