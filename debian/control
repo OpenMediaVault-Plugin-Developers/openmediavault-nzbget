@@ -1,16 +1,27 @@
 Source: openmediavault-nzbget
 Section: net
-XB-Plugin-Section: downloaders
 Priority: optional
 Maintainer: OpenMediaVault Plugin Developers <plugins@omv-extras.org>
 Build-Depends: debhelper (>= 9 )
-Standards-Version: 3.9.3
+Standards-Version: 3.9.6
+XB-Plugin-Section: downloaders
 
 Package: openmediavault-nzbget
 Architecture: all
-Depends: ${misc:Depends}, openmediavault (>= 1.0), libjs-jquery (>= 1.7.2), openssl,
- libc6 (>= 2.13), libgcc1 (>= 1:4.1.1), libgnutls-dev, libncurses5 (>= 5.5-5~),
- par2, libsigc++-2.0-0c2a (>= 2.2.0), libstdc++6, libtinfo5, libxml2 (>= 2.7.4), zlib1g (>= 1:1.2.0)
+Depends: openmediavault (>= 3.0),
+         libjs-jquery (>= 1.7.2),
+         openssl,
+         libc6 (>= 2.13),
+         libgcc1 (>= 1:4.1.1),
+         libgnutls-dev | libgnutls28-dev,
+         libncurses5 (>= 5.5-5~),
+         par2,
+         libsigc++-2.0-0c2a (>= 2.2.0),
+         libstdc++6,
+         libtinfo5,
+         libxml2 (>= 2.7.4),
+         zlib1g (>= 1:1.2.0),
+         ${misc:Depends}
 Recommends: python
 Homepage: http://nzbget.sourceforge.net
 Description: command-line based binary newsgrabber for nzb files

@@ -1,3 +1,9 @@
+openmediavault-nzbget (3.0) TESTING; urgency=low
+
+  * OMV 3.0 release.
+
+ -- OpenMediaVault Plugin Developers <plugins@omv-extras.org>  Sat, 09 Jan 2016 11:02:00 +0000
+
 openmediavault-nzbget (1.6) TESTING; urgency=low
 
   * Change downloads to use github

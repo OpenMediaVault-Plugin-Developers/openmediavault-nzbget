@@ -7,10 +7,6 @@ set -e
 
 case "$1" in
     purge)
-        if [ -f "/etc/init.d/nzbget" ]; then
-            /ect/init.d/nzbget stop
-        fi
-
         if [ ! -z "$(pidof nzbget)" ]; then
             pkill -9 -u `id -u nzbget` >/dev/null >&2
         fi

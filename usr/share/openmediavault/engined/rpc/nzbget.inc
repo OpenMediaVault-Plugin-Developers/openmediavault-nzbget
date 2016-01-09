@@ -42,7 +42,7 @@ class OMVRpcServiceNZBGet extends OMVRpcServiceAbstract
 
     private function getXPath()
     {
-        return sprintf("//services/%s", $this->getPluginName());
+        return sprintf("/config/services/%s", $this->getPluginName());
     }
 
     public function getName()
@@ -114,32 +114,27 @@ class OMVRpcServiceNZBGet extends OMVRpcServiceAbstract
                     "showtab"                     : { "type" : "boolean" },
                     "port"                        : { "type" : "integer" },
                     "download.sharedfolderref"    : {' . $GLOBALS["OMV_JSONSCHEMA_UUID_NONE"] . '},
+                    "folder"                      : { "type" : "string", "optional" : true },
                     "main-dir"                    : { "type" : "string" }
                 }
             }'
         );
 
+        // Get the absolute shared folder path.
+        $mainpath = OMVRpc::exec("ShareMgmt", "getPath", array(
+            "uuid" => $params["download.sharedfolderref"]), $context);
+
+        if (stripos(strrev($mainpath), "/") === 0) {
+            $dbFolder = sprintf("{$mainpath}/%s", $params['main-dir']);
+        } else {
+            $dbFolder = sprintf("{$mainpath}%s", $params['main-dir']);
+        }
+
         if (file_exists($this->nzbgetSettingsFile)) {
-            //sed -i '0,s/MainDir.*/MainDir=$ControlUsername/g' /usr/share/nzbget/nzbget.conf
-
-
-
-            //$config = parse_ini_file(
-            //    $this->nzbgetSettingsFile,
-            //    true,
-            //    INI_SCANNER_RAW
-            //);
-
-            // Get the absolute shared folder path.
-            $mainpath = OMVRpc::exec("ShareMgmt", "getPath", array(
-                "uuid" => $params["download.sharedfolderref"]), $context);
-
             // Change valuse
             if($params["main-dir"] !== '') {
-                //ini_set($config['MainDir'],$mainpath . "/" . $params["main-dir"]);
                 $cmd="sed -i 's#^MainDir.*#MainDir=" . $mainpath . $params["main-dir"] . "#g' /usr/share/nzbget/nzbget.conf";
             }else{
-                //ini_set($config['MainDir'],$mainpath);
                 $cmd="sed -i 's#^MainDir.*#MainDir=" . $mainpath . "#g' /usr/share/nzbget/nzbget.conf";
             }
 
@@ -147,19 +142,19 @@ class OMVRpcServiceNZBGet extends OMVRpcServiceAbstract
                 throw new OMVException(
                     OMVErrorMsg::E_EXEC_FAILED,
                     $cmd,
-                    implode("\n", $output)
+                    implode(PHP_EOL, $output)
                 );
             }
         }
 
-
-        $object = array(
+        $object = [
             "enable"                     => array_boolval($params, "enable"),
             "showtab"                    => array_boolval($params, "showtab"),
             "port"                       => $params["port"],
             "download.sharedfolderref"   => $params["download.sharedfolderref"],
+            "folder"                     => $dbFolder,
             "main-dir"                   => $params["main-dir"]
-        );
+        ];
 
         if (false === $xmlConfig->replace($this->getXPath(), $object)) {
             throw new OMVException(

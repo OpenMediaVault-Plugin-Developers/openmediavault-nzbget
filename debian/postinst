@@ -6,22 +6,25 @@ set -e
 . /usr/share/openmediavault/scripts/helper-functions
 
 OMV_NZBGET_USER="nzbget"
-OMV_NZBGET_GROUP="users"
+OMV_NZBGET_GROUP="nzbget"
 ControlUsername=""
 ControlPassword=""
 
 case "$1" in
     configure)
-        if ! getent passwd nzbget >/dev/null 2>&1; then
-            echo "Adding nzbget user..."
-            adduser --quiet \
-                    --system \
-                    --ingroup $OMV_NZBGET_GROUP \
-                    --disabled-password \
-                    $OMV_NZBGET_USER
-            insserv -d nzbget
-        else
-            echo "nzbget user already exists."
+        # Set the default settings of the service package to those expected by
+        # OpenMediaVault.
+        if [ -z "${2}" ]; then
+            systemctl stop nzbget.service >/dev/null || true
+            systemctl disable nzbget.service >/dev/null || true
+        fi
+
+        if ! getent group nzbget >/dev/null; then
+            groupadd -r nzbget >/dev/null
+        fi
+
+        if ! getent passwd nzbget >/dev/null; then
+            useradd -r -g nzbget -d /var/lib/nzbget -s /bin/false -c nzbget nzbget >/dev/null
         fi
 
         if [ ! -f "/usr/share/nzbget/nzbget" ]; then
@@ -32,7 +35,6 @@ case "$1" in
                 echo "No stable link found, installing latest NZBGet testing version"
                 link=`wget -q -O - http://nzbget.net/info/nzbget-version-linux.json | sed -n "s/^.*testing-download.*: \"\(.*\)\".*/\1/p"`
             fi
-            #wget http://sourceforge.net/projects/nzbget/files/nzbget-testing/15.0-r1278/nzbget-15.0-testing-r1278-bin-linux.run -O /usr/share/nzbget-bin-linux.run
             echo "Please wait, downloading files....."
             wget ${link} -O /usr/share/nzbget-bin-linux.run > /dev/null 2>&1
             chmod +x /usr/share/nzbget-bin-linux.run
@@ -57,8 +59,7 @@ case "$1" in
             sed -i 's/ControlUsername.*/ControlUsername='$ControlUsername'/g' /usr/share/nzbget/nzbget.conf
             sed -i 's/ControlPassword.*/ControlPassword='$ControlPassword'/g' /usr/share/nzbget/nzbget.conf
             sed -i 's/DaemonUsername.*/DaemonUsername=nzbget/g' /usr/share/nzbget/nzbget.conf
-
-DaemonUsername=root
+            sed -i 's/UMask.*/UMask=0000/g' /usr/share/nzbget/nzbget.conf
         fi
 
         if ! omv_config_exists "/config/services/nzbget"; then
@@ -68,11 +69,8 @@ DaemonUsername=root
             omv_config_add_element "/config/services" "nzbget" "${object}" true
         fi
 
-        chown -R nzbget:users /usr/share/nzbget
-        chown -R nzbget:users /etc/init.d/nzbget
+        chown -R $OMV_NZBGET_USER:$OMV_NZBGET_GROUP /usr/share/nzbget
         chmod -R 775 /usr/share/nzbget
-
-        omv_install_fixperms
 
         # Activate package triggers. These triggers are only set during the
         # package installation.
@@ -88,6 +86,8 @@ DaemonUsername=root
         exit 1
     ;;
 esac
+
+#DEBHELPER#
 
 exit 0
 

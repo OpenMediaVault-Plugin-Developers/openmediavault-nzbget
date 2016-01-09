@@ -19,7 +19,7 @@
 
 require_once "openmediavault/config.inc";
 require_once "openmediavault/error.inc";
-require_once "openmediavault/initscript.inc";
+require_once "openmediavault/systemctl.inc";
 require_once "openmediavault/module.inc";
 
 class OMVModuleNZBGet extends OMVModuleServiceAbstract implements
@@ -38,13 +38,26 @@ class OMVModuleNZBGet extends OMVModuleServiceAbstract implements
 
     private function getXPath()
     {
-        return sprintf("//services/%s", $this->getPluginName());
+        return sprintf("/config/services/%s", $this->getPluginName());
     }
 
     public function getName()
     {
         return "NZBGet";
     }
+
+    public function applyConfig()
+    {
+        $cmd = sprintf("export LANG=C; omv-mkconf %s 2>&1", $this->getPluginName());
+        if (0 !== $this->exec($cmd, $output)) {
+            throw new OMVException(
+                OMVErrorMsg::E_EXEC_FAILED,
+                $cmd,
+                implode(PHP_EOL, $output)
+            );
+        }
+    }
+
 
     public function getStatus()
     {
@@ -59,13 +72,13 @@ class OMVModuleNZBGet extends OMVModuleServiceAbstract implements
             );
         }
 
-        $initd = new OMVSysVInitScript($this->getPluginName());
+        $systemCtl = new OMVSystemCtl($this->getPluginName());
 
         return array(
             "name"    => $this->getPluginName(),
             "title"   => gettext($this->getName()),
             "enabled" => boolval($object["enable"]),
-            "running" => $initd->status() == 0
+            "running" => $systemCtl->isActive()
         );
     }
 
@@ -86,14 +99,14 @@ class OMVModuleNZBGet extends OMVModuleServiceAbstract implements
             return;
         }
 
-        $initd = new OMVSysVInitScript($this->getPluginName(), true);
-        $initd->exec();
+        $systemCtl = new OMVSystemCtl($this->getPluginName());
+        $systemCtl->enable(true);
     }
 
     public function stopService()
     {
-        $initd = new OMVSysVInitScript($this->getPluginName());
-        $initd->exec();
+        $systemCtl = new OMVSystemCtl($this->getPluginName());
+        $systemCtl->disable(true);
     }
 
     public function bindListeners(OMVNotifyDispatcher $dispatcher)
