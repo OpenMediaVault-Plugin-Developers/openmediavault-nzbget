@@ -8,7 +8,7 @@ XB-Plugin-Section: downloaders
 
 Package: openmediavault-nzbget
 Architecture: all
-Depends: openmediavault (>= 3.0),
+Depends: openmediavault (= 3.0.13),
          libjs-jquery (>= 1.7.2),
          openssl,
          libc6 (>= 2.13),
