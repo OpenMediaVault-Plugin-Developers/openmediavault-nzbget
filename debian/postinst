@@ -62,11 +62,44 @@ case "$1" in
             sed -i 's/UMask.*/UMask=0000/g' /usr/share/nzbget/nzbget.conf
         fi
 
-        if ! omv_config_exists "/config/services/nzbget"; then
+        SERVICE_XPATH_NAME="nzbget"
+        SERVICE_XPATH="/config/services/${SERVICE_XPATH_NAME}"
+
+        if dpkg --compare-versions "${2}" lt-nl "3.1"; then
+            if omv_config_exists "${SERVICE_XPATH}"; then
+                ENABLE="$(omv_config_get "${SERVICE_XPATH}/enable")"
+                SHOWTAB="$(omv_config_get "${SERVICE_XPATH}/showtab")"
+                DREF="$(omv_config_get "${SERVICE_XPATH}/download.sharedfolderref")"
+                MDIR="$(omv_config_get "${SERVICE_XPATH}/main-dir")"
+                PORT="$(omv_config_get "${SERVICE_XPATH}/port")"
+            else
+                ENABLE="0"
+                SHOWTAB="0"
+                DREF=""
+                MDIR=""
+                PORT="6789"
+            fi
+
+            omv_config_delete "${SERVICE_XPATH}"
+
+            if ! omv_config_exists "${SERVICE_XPATH}"; then
+                omv_config_add_element "/config/services" "${SERVICE_XPATH_NAME}"
+                omv_config_add_element "${SERVICE_XPATH}" "enable" $ENABLE
+                omv_config_add_element "${SERVICE_XPATH}" "showtab" $SHOWTAB
+                omv_config_add_element "${SERVICE_XPATH}" "mntentref" $DREF
+                omv_config_add_element "${SERVICE_XPATH}" "main-dir" $MDIR
+                omv_config_add_element "${SERVICE_XPATH}" "port" $PORT
+            fi
+        fi
+
+        if ! omv_config_exists "${SERVICE_XPATH}"; then
             echo "Initial configuration."
-            object="<enable>0</enable>"
-            object="${object}<showtab>0</showtab>"
-            omv_config_add_element "/config/services" "nzbget" "${object}" true
+            omv_config_add_element "/config/services" "${SERVICE_XPATH_NAME}"
+            omv_config_add_element "${SERVICE_XPATH}" "enable" "0"
+            omv_config_add_element "${SERVICE_XPATH}" "showtab" "0"
+            omv_config_add_element "${SERVICE_XPATH}" "mntentref" ""
+            omv_config_add_element "${SERVICE_XPATH}" "main-dir" ""
+            omv_config_add_element "${SERVICE_XPATH}" "port" "6789"
         fi
 
         chown -R $OMV_NZBGET_USER:$OMV_NZBGET_GROUP /usr/share/nzbget

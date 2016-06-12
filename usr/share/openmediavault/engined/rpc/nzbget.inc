@@ -1,7 +1,8 @@
 <?php
 
 /**
- * Copyright (C) 2013-2015 OpenMediaVault Plugin Developers
+ * Copyright (C) 2010-2012 Ian Moore <imooreyahoo@gmail.com>
+ * Copyright (C) 2013-2015 OpenMediaVault Plugin Developers.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,38 +17,40 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+ //
 
-require_once "openmediavault/config.inc";
-require_once "openmediavault/error.inc";
-require_once "openmediavault/notify.inc";
-require_once "openmediavault/object.inc";
-require_once "openmediavault/product.inc";
-require_once "openmediavault/rpcservice.inc";
-require_once "openmediavault/system.inc";
-require_once "openmediavault/util.inc";
+namespace OMV\Engined\Rpc;
 
-class OMVRpcServiceNZBGet extends OMVRpcServiceAbstract
+use DateTime;
+use Exception;
+use OMV\Config\Database;
+use OMV\Engine\Notify\Dispatcher;
+use OMV\Rpc\ServiceAbstract;
+use OMV\Rpc\ServiceManager as RpcServiceManager;
+use OMV\System\Process;
+use SplFileObject;
+
+class NZBGet extends ServiceAbstract
 {
+    private $database;
+
+    private $dataModelPath = 'conf.service.nzbget';
+
+    private $dispatcher;
+
+    private $eventMessagePath = 'org.openmediavault.conf.services.nzbget';
+
     private $nzbgetSettingsFile = "/usr/share/nzbget/nzbget.conf";
 
-    private function getPluginName()
+    public function __construct(Database $database = null, Dispatcher $dispatcher = null)
     {
-        return strtolower($this->getName());
-    }
-
-    private function getEventMessagePath()
-    {
-        return sprintf("org.openmediavault.service.%s", $this->getPluginName());
-    }
-
-    private function getXPath()
-    {
-        return sprintf("/config/services/%s", $this->getPluginName());
+        $this->database = $database ?: Database::getInstance();
+        $this->dispatcher = $dispatcher ?: Dispatcher::getInstance();
     }
 
     public function getName()
     {
-        return "NZBGet";
+        return 'NZBGet';
     }
 
     public function initialize()
@@ -58,20 +61,9 @@ class OMVRpcServiceNZBGet extends OMVRpcServiceAbstract
 
     public function getSettings($params, $context)
     {
-        global $xmlConfig;
+        $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
 
-        $this->validateMethodContext($context, array(
-            "role" => OMV_ROLE_ADMINISTRATOR
-        ));
-
-        $object = $xmlConfig->get($this->getXPath());
-
-        if (is_null($object)) {
-            throw new OMVException(
-                OMVErrorMsg::E_CONFIG_GET_OBJECT_FAILED,
-                $this->getXPath()
-            );
-        }
+        $object = $this->database->get($this->dataModelPath);
 
         $port = 6789;
 
@@ -88,92 +80,52 @@ class OMVRpcServiceNZBGet extends OMVRpcServiceAbstract
             }
         }
 
-        $object["enable"]                   = boolval($object["enable"]);
-        $object["showtab"]                  = boolval($object["showtab"]);
-        $object["port"]                     = intval($port);
-        $object["download.sharedfolderref"] = $object["download.sharedfolderref"];
-        $object["main-dir"]                 = $object["main-dir"];
+        $object->add('port', 'integer');
+        $object->set('port', intval($port));
 
-        return $object;
+        return $object->getAssoc();
     }
 
     public function setSettings($params, $context)
     {
-        global $xmlConfig;
+        $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
+        $this->validateMethodParams($params, 'rpc.nzbget.setsettings');
 
-        $this->validateMethodContext($context, array(
-            "role" => OMV_ROLE_ADMINISTRATOR
-        ));
+        $object = $this->database->get($this->dataModelPath);
 
-        $this->validateMethodParams(
-            $params,
-            '{
-                "type"       : "object",
-                "properties" : {
-                    "enable"                      : { "type" : "boolean" },
-                    "showtab"                     : { "type" : "boolean" },
-                    "port"                        : { "type" : "integer" },
-                    "download.sharedfolderref"    : {' . $GLOBALS["OMV_JSONSCHEMA_UUID_NONE"] . '},
-                    "folder"                      : { "type" : "string", "optional" : true },
-                    "main-dir"                    : { "type" : "string" }
-                }
-            }'
-        );
+        if (empty($params['mntentref'])) {
+            throw new Exception('You must choose a folder to store downloads.');
+        }
 
-        // Get the absolute shared folder path.
-        $mainpath = OMVRpc::exec("ShareMgmt", "getPath", array(
-            "uuid" => $params["download.sharedfolderref"]), $context);
+        if (!empty($params['main-dir'])) {
+                $params['main-dir'] = rtrim($params['main-dir'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        }
 
-        if (stripos(strrev($mainpath), "/") === 0) {
-            $dbFolder = sprintf("{$mainpath}/%s", $params['main-dir']);
+        $db = \OMV\Config\Database::getInstance();
+
+        $deviceDir = $db->getAssoc('conf.system.sharedfolder', $params['mntentref']);
+        $deviceDir = $db->getAssoc('conf.system.filesystem.mountpoint', $deviceDir['mntentref'])['dir'] . '/' . $deviceDir['reldirpath'];
+
+        if (stripos(strrev($deviceDir), "/") === 0) {
+            $dbFolder = sprintf("{$deviceDir}%s", $params['main-dir']);
         } else {
-            $dbFolder = sprintf("{$mainpath}%s", $params['main-dir']);
+            $dbFolder = sprintf("{$deviceDir}/%s", $params['main-dir']);
         }
 
         if (file_exists($this->nzbgetSettingsFile)) {
             // Change valuse
-            if($params["main-dir"] !== '') {
-                $cmd="sed -i 's#^MainDir.*#MainDir=" . $mainpath . $params["main-dir"] . "#g' /usr/share/nzbget/nzbget.conf";
-            }else{
-                $cmd="sed -i 's#^MainDir.*#MainDir=" . $mainpath . "#g' /usr/share/nzbget/nzbget.conf";
-            }
+            $cmd="chmod 777 {$dbFolder} -R;sed -i 's#^MainDir.*#MainDir=" . $dbFolder . "#g' /usr/share/nzbget/nzbget.conf";
 
             if (0 !== $this->exec($cmd, $output)) {
-                throw new OMVException(
-                    OMVErrorMsg::E_EXEC_FAILED,
-                    $cmd,
-                    implode(PHP_EOL, $output)
-                );
+                throw new Exception($cmd, implode(PHP_EOL, $output));
             }
         }
 
-        $object = [
-            "enable"                     => array_boolval($params, "enable"),
-            "showtab"                    => array_boolval($params, "showtab"),
-            "port"                       => $params["port"],
-            "download.sharedfolderref"   => $params["download.sharedfolderref"],
-            "folder"                     => $dbFolder,
-            "main-dir"                   => $params["main-dir"]
-        ];
+        $object->setAssoc($params);
 
-        if (false === $xmlConfig->replace($this->getXPath(), $object)) {
-            throw new OMVException(
-                OMVErrorMsg::E_CONFIG_SET_OBJECT_FAILED,
-                $this->getXPath()
-            );
-        }
+        $this->database->set($object);
+        $this->dispatcher->notify(OMV_NOTIFY_MODIFY, $this->eventMessagePath, $object);
 
-        $dispatcher = &OMVNotifyDispatcher::getInstance();
-        $dispatcher->notify(
-            OMV_NOTIFY_MODIFY,
-            $this->getEventMessagePath(),
-            $object
-        );
-
-        return $object;
+        return $object->getAssoc();
     }
 }
-
-// Register the RPC service.
-$rpcServiceMgr = &OMVRpcServiceMgr::getInstance();
-$rpcServiceMgr->registerService(new OMVRpcServiceNZBGet());

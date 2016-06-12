@@ -127,7 +127,7 @@ Ext.define("OMV.module.admin.service.nzbget.Settings", {
             },{
                 ptype : "fieldinfo",
                 xtype      : "sharedfoldercombo",
-                name       : "download.sharedfolderref",
+                name       : "mntentref",
                 fieldLabel : _("Shared folder"),
                 plugins    : [{
                     ptype : "fieldinfo",

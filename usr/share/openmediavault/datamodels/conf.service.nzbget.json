@@ -1,0 +1,32 @@
+{
+	"type": "config",
+	"id": "conf.service.nzbget",
+	"title": "NZBGet",
+	"queryinfo": {
+		"xpath": "/config/services/nzbget",
+		"iterable": false
+	},
+	"properties": {
+		"enable": {
+			"type": "boolean",
+			"default": false
+		},
+		"showtab": {
+			"type": "boolean",
+			"default": false
+		},
+        "port": {
+            "type": "integer",
+            "minimum": 1025,
+            "maximum": 65535,
+            "default": 6789
+        },
+        "mntentref": {
+            "type": "string",
+            "format": "uuidv4"
+        },
+        "main-dir": {
+            "type": "string"
+        }
+	}
+}
