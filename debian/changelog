@@ -1,3 +1,9 @@
+openmediavault-nzbget (3.2) TESTING; urgency=medium
+
+  * OMV3.2 Version
+
+ -- OpenMediaVault Plugin Developers <plugins@omv-extras.org>  Thu, 30 Jun 2016 04:30:00 -0000
+
 openmediavault-nzbget (3.1) TESTING; urgency=medium
 
   * Changed dependency of OMV Package to = 3.0.13 to avoid accidental
